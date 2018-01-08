@@ -103,7 +103,13 @@ public class SharedData {
     }
 
     public String getNextMovieID(){
-        for (Movie currMovie:)
+        Integer maxID=1;
+        for (String currMovie : MovieHolder.keySet()){
+            Integer currID=Integer.getInteger(MovieHolder.get(currMovie).getId());
+            if (currID>maxID){
+                maxID=
+            }
+        }
     }
 
     public void updateJson(){}
