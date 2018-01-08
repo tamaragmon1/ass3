@@ -7,7 +7,9 @@ import com.google.gson.*;
 import com.google.gson.stream.JsonReader;
 
 import java.io.*;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 
 public class SharedData {
     //TODO add Json files
@@ -93,6 +95,15 @@ public class SharedData {
         newAvailableAmount=newAvailableAmount+1;
         getSpecifiedMovie(movieName).setAvailableAmount(newAvailableAmount.toString());
         updateJson();
+    }
+
+    public void addMovie(String movieName,Integer amount,Integer price, List<String> messageArray){
+        String nextID=getNextMovieID();
+        Movie toInsert= new Movie()
+    }
+
+    public String getNextMovieID(){
+        for (Movie currMovie:)
     }
 
     public void updateJson(){}

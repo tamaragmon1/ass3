@@ -25,14 +25,15 @@ public class User {
     @SerializedName("balance")
     @Expose
     private String balance;
-    private boolean isLogin=false;
+
 
     public User(String username, String type, String password, String country){ // TODO country?
         this.username=username;
         this.password=password;
-        this.movies=new LinkedList<Movie>(); //TODO is initiation needed here?
+        this.movies=new LinkedList<Movie>();
         this.balance="0";
         this.country=country;
+        this.type="normal";
     }
 
 
@@ -42,18 +43,6 @@ public class User {
 
     public void setUsername(String username) {
         this.username = username;
-    }
-
-    public boolean isLogedin(){
-        return isLogin;
-    }
-
-    public void logOut(){
-        this.isLogin=false;
-    }
-
-    public void logIn(){
-        this.isLogin=true;
     }
 
     public String getType() {

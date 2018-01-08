@@ -4,6 +4,8 @@ import bgu.spl181.net.impl.User;
 import bgu.spl181.net.impl.UsersHolder;
 import bgu.spl181.net.srv.SharedData;
 
+import java.util.ArrayList;
+
 public abstract class userServiceTextBasedProtocol<T> implements BidiMessagingProtocol<T> {
 
     protected SharedData DataForAll;
@@ -29,18 +31,17 @@ public abstract class userServiceTextBasedProtocol<T> implements BidiMessagingPr
 
     public void process(T message){
         //TODO signout - how to chane the souldterminate
-        String[] messageArr=toArray((String) message);//sort the message in an array
+        ArrayList<String> messageArr=toArray((String) message);//sort the message in an array
         toCommand(messageArr);
-
     }
 
-    public void toCommand(String[] messageArray){
-        switch (messageArray[0]){
+    public void toCommand(ArrayList<String> messageArray){
+        switch (messageArray.get(0)){
             case "LOGIN":{
-                loginCommand(messageArray[1], messageArray[2]);
+                loginCommand(messageArray.get(1), messageArray.get(2));
                 break;}
             case "REGISTER":{
-                registerCommand(messageArray[1], messageArray[2], messageArray[3]);
+                registerCommand(messageArray.get(1), messageArray.get(2), messageArray.get(3));
                 break;
             }
             case "SIGNOUT":{
@@ -56,19 +57,31 @@ public abstract class userServiceTextBasedProtocol<T> implements BidiMessagingPr
 
 
 
-    public String[] toArray(String message){
-        String[] arr=new String[10];
-        int i=0;
-        while (message!=""){
-            int space=message.indexOf(" "); // position of the next space
-            if (space!=-1) {
-                arr[i] = message.substring(0, space); //Extract next word
-                i++;
-                message=message.substring(space+1); // saves the rest of the string
+    public ArrayList<String> toArray(String message){
+
+        ArrayList<String> arr=new ArrayList<String>();
+
+        while (message!="")
+        {
+            int ind=message.indexOf("\"");
+            int space = message.indexOf(" ");
+            if (ind==-1 && space==-1){ // message is a single word (no spaces, no quotation)
+                arr.add(message);
+                message=""; // saves the rest
+            }
+            else if ((space != -1 && space < ind) || ind==-1) { // space comes before quotation
+                arr.add(message.substring(0, space)); // add to arr
+                message=message.substring(space+1); // // saves the rest of the string
+            }
+
+            else if ((ind!=-1 && ind<space) || space==-1){ // next word is with quotation
+                message=message.substring(ind+1); //cut from first quotation mark
+                ind=message.indexOf("\""); // end of quotation
+                arr.add(message.substring(0,ind));
+                message=message.substring(ind+2); // saves the rest
             }
         }
         return arr;
-
     }
 
     public boolean shouldTerminate(){
@@ -86,7 +99,7 @@ public abstract class userServiceTextBasedProtocol<T> implements BidiMessagingPr
             isLogin=true;
         }
         else
-        connections.send(connId, "ERROR login failed");
+            connections.send(connId, "ERROR login failed");
     }
 
     protected void registerCommand(String userName, String password, String country){
@@ -119,5 +132,5 @@ public abstract class userServiceTextBasedProtocol<T> implements BidiMessagingPr
         }
     }
 
-    protected void requestCommand(String[] messageArray){ }
+    protected void requestCommand(ArrayList<String> messageArray){ }
 }

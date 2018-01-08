@@ -25,7 +25,14 @@ public class Movie {
     @Expose
     private String totalAmount;
 
-
+    public Movie (String id, String name, String amount, String price, List<String> bannedCountries){
+        this.id=id;
+        this.name=name;
+        this.price=price;
+        this.bannedCountries=bannedCountries;
+        this.availableAmount=amount;
+        this.totalAmount=amount;
+    }
 
     public String getId() {
         return id;
