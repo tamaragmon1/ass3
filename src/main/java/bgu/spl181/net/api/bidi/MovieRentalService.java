@@ -7,7 +7,9 @@ import org.omg.CORBA.DATA_CONVERSION;
 
 import java.io.FileWriter;
 import java.io.Writer;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
 
 public class MovieRentalService extends userServiceTextBasedProtocol {
@@ -16,12 +18,12 @@ public class MovieRentalService extends userServiceTextBasedProtocol {
         super(SDP);
     }
 
-    public void requestCommand (String[] messageArray){
+    public void requestCommand (ArrayList<String> messageArray){
         if (!isLogin) {
             connections.send(connId, "ERROR "); //todo complete this
             return;
         }
-        String Command=messageArray[1];
+        String Command=messageArray.get(1);
         switch (Command){
             case "balance":{
                 balanceREQ(messageArray);
@@ -39,23 +41,27 @@ public class MovieRentalService extends userServiceTextBasedProtocol {
                 returnREQ(messageArray);
                 break;
             }
+            case "addmovie":{
+                addmovieREQ(messageArray);
+                break;
+            }
         }
     }
 
-    private void balanceREQ(String[] messageArray){
-        if (messageArray[2]=="info"){                                  //REQUEST balance info
+    private void balanceREQ(ArrayList<String> messageArray){
+        if (messageArray.get(2)=="info"){                                  //REQUEST balance info
             User currUser=DataForAll.getUser(name);
             connections.send(connId, "ACK balance "+currUser.getBalance());
         }
-        else if (messageArray[2]=="add"){                              //REQUEST balance add
-            String newBalance=DataForAll.BalanceAdd(name,Integer.getInteger(messageArray[3]));
-            connections.send(connId,"ACK balance "+newBalance+" added "+messageArray[3]);
+        else if (messageArray.get(2)=="add"){                              //REQUEST balance add
+            String newBalance=DataForAll.BalanceAdd(name,Integer.getInteger(messageArray.get(3)));
+            connections.send(connId,"ACK balance "+newBalance+" added "+messageArray.get(3));
         }
     }
 
-    private void infoREQ(String[] messageArray){
-        if (messageArray[2]!=null){                              //if the movie name was given
-            Movie thisMovie=DataForAll.getSpecifiedMovie(messageArray[2]);
+    private void infoREQ(ArrayList<String> messageArray){
+        if (messageArray.get(2)!=null){                              //if the movie name was given
+            Movie thisMovie=DataForAll.getSpecifiedMovie(messageArray.get(2));
             if (thisMovie== null)                                //if the movie does not exist
                 connections.send(connId,"ERROR request info failed");
             else                                                 //if there was no movie name
@@ -66,8 +72,8 @@ public class MovieRentalService extends userServiceTextBasedProtocol {
     }
 
 
-    private void rentREQ(String[] messageArray) {
-        String movieName = messageArray[2];
+    private void rentREQ(ArrayList<String> messageArray) {
+        String movieName = messageArray.get(2);
         movieName = movieName.substring(1, movieName.length() - 1);
         Movie toRent = DataForAll.getSpecifiedMovie(movieName);
         User myUser=DataForAll.getUser(name);
@@ -118,10 +124,10 @@ public class MovieRentalService extends userServiceTextBasedProtocol {
         }
     }
 
-    private void returnREQ(String[] messageArray){
+    private void returnREQ(ArrayList<String> messageArray){
         HashMap<String,Movie> allMovies=DataForAll.getMovieHolder();
         User thisUser= DataForAll.getUser(name);
-        String movieName=messageArray[2];
+        String movieName=messageArray.get(2);
         //if the user is currently not renting the movie OR the movie doesn't exist
         if (!allMovies.containsKey(movieName) || !thisUser.getMovies().contains(movieName) ){
             connections.send(connId, "ERROR return \"" + movieName + "\" failed");
@@ -131,6 +137,23 @@ public class MovieRentalService extends userServiceTextBasedProtocol {
             connections.send(connId,"ACK return \"" + movieName + "\" success");
             Movie thisMovie=DataForAll.getSpecifiedMovie(movieName);
             connections.broadcast("BROADCAST movie \"" + movieName + " " + thisMovie.getAvailableAmount() + " " + thisMovie.getPrice());
+        }
+    }
+
+
+    private void addmovieREQ(ArrayList<String> messageArray){
+        String movieName=messageArray.get(2);
+        Integer amount=Integer.getInteger(messageArray.get(3));
+        Integer price=Integer.getInteger(messageArray.get(4));
+        User thisUser=DataForAll.getUser(name);
+        //reasons for failure
+        if (thisUser.getType()!="admin" || DataForAll.getSpecifiedMovie(movieName)!=null || price<=0 || amount<=0){
+            connections.send(connId,"ERROR addmovie failed");
+        }
+        else{
+            DataForAll.addMovie(movieName,amount,price, getBannedCountriesList(messageArray));
+            connections.send(connId,"ACK addmovie \"" + movieName + "\" success");
+            connections.broadcast("BROADCAST movie \"" + movieName + "\" " + );
         }
     }
 
@@ -149,6 +172,15 @@ public class MovieRentalService extends userServiceTextBasedProtocol {
         String ans="";
         for (String currMovie:allMovies.keySet()) {
             ans = ans + " \"" + currMovie + "\"";
+        }
+        return ans;
+    }
+
+    private List<String> getBannedCountriesList(ArrayList<String> messageArray){
+        List <String> ans = new LinkedList<String>();
+        for (int i=5;i<messageArray.size();i++){
+            if (messageArray.get(i)!=null)
+                ans.add(messageArray.get(i));
         }
         return ans;
     }
