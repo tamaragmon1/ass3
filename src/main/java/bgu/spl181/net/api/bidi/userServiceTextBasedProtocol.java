@@ -1,7 +1,6 @@
 package bgu.spl181.net.api.bidi;
 
 import bgu.spl181.net.impl.User;
-import bgu.spl181.net.impl.UsersHolder;
 import bgu.spl181.net.srv.SharedData;
 
 import java.util.ArrayList;
@@ -15,14 +14,11 @@ public abstract class userServiceTextBasedProtocol<T> implements BidiMessagingPr
     protected boolean shouldTerminate= false;
     protected boolean isLogin=false;
 
-    //TODO check if default constructor is okey
     public userServiceTextBasedProtocol(){}
 
     public userServiceTextBasedProtocol(SharedData shared){
         this.DataForAll=shared;
     }
-
-    //TODO: who calls the stat function
 
     public void start(int connectionId, Connections<T> connections){
         this.connections=(ConnectionsImpl<String>)connections;
@@ -30,7 +26,6 @@ public abstract class userServiceTextBasedProtocol<T> implements BidiMessagingPr
     }
 
     public void process(T message){
-        //TODO signout - how to chane the souldterminate
         ArrayList<String> messageArr=toArray((String) message);//sort the message in an array
         toCommand(messageArr);
     }
@@ -54,8 +49,6 @@ public abstract class userServiceTextBasedProtocol<T> implements BidiMessagingPr
             }
         }
     }
-
-
 
     public ArrayList<String> toArray(String message){
 
@@ -102,13 +95,13 @@ public abstract class userServiceTextBasedProtocol<T> implements BidiMessagingPr
             connections.send(connId, "ERROR login failed");
     }
 
-    protected void registerCommand(String userName, String password, String country){
+    protected void registerCommand(String userName, String password, String Datablock){
         if (userName!=null
                 && password!=null
                 && isLogin==false
                 && DataForAll.getUser(userName)==null) {// checks if this user isnt exist
 
-            User newUser=new User(userName, "normal", password, country);
+            User newUser=new User(userName, password, Datablock);
             DataForAll.addUser(newUser);
             this.name=userName;
             connections.send(connId, "ACK register succeeded");

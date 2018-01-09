@@ -53,13 +53,14 @@ public class BlockingConnectionHandler<T> implements Runnable, ConnectionHandler
 
     @Override
     public void send(T msg) {
-        try (Socket sock = this.sock) {
-            out = new BufferedOutputStream(sock.getOutputStream());
-            out.write(encdec.encode(msg));
-            out.flush();
-        }
-        catch (IOException ex){
-            ex.printStackTrace();
+        if (msg!=null) {
+            try (Socket sock = this.sock) {
+                out = new BufferedOutputStream(sock.getOutputStream());
+                out.write(encdec.encode(msg));
+                out.flush();
+            } catch (IOException ex) {
+                ex.printStackTrace();
+            }
         }
     }
 }

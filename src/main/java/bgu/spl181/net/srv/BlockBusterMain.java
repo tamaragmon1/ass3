@@ -6,7 +6,7 @@ import bgu.spl181.net.api.bidi.ObjectEncoderDecoder;
 public class BlockBusterMain {
 
     public static void main(String[] args) {
-        SharedData feed = new SharedData("Database/Movies.json","Database/"); //one shared object
+        MoviesSharedData feed = new MoviesSharedData("Database/Movies.json","Database/Users.json"); //one shared object
 
 // you can use any server...
         Server.threadPerClient(
@@ -15,12 +15,12 @@ public class BlockBusterMain {
                 ObjectEncoderDecoder::new //message encoder decoder factory
         ).serve();
 
-/*        Server.reactor(
+        Server.reactor(
                 Runtime.getRuntime().availableProcessors(),
                 7777, //port
                 () ->  new MovieRentalService<>(feed), //protocol factory
                 ObjectEncoderDecoder::new //message encoder decoder factory
         ).serve();
-*/
+
     }
 }

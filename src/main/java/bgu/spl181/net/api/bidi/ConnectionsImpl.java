@@ -16,6 +16,7 @@ public class ConnectionsImpl<T> implements Connections<T> {
         if (!ConnectionsMapping.containsKey(connectionId))  //if the connection handler is not exist
             return false;
         CH.send(msg);
+        System.out.println(msg); //TODO remove!!!!!!!
         return true;
     }
 

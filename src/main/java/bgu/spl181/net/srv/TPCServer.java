@@ -44,12 +44,15 @@ public abstract class TPCServer<T> implements Server<T> {
 
                 Socket clientSock = serverSock.accept();
 
+                BidiMessagingProtocol thisProtocol=protocolFactory.get();
+
                 BlockingConnectionHandler<T> handler = new BlockingConnectionHandler<T>(
                         clientSock,
                         encdecFactory.get(),
-                        protocolFactory.get());
+                        thisProtocol);
 
                 connections.addConnection(IDCounter,handler);
+                thisProtocol.start(IDCounter,connections);
                 IDCounter++;
                 execute(handler);
 
