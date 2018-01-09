@@ -1,79 +1,45 @@
 package bgu.spl181.net.api.bidi;
 
+
 import bgu.spl181.net.api.MessageEncoderDecoder;
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.ObjectInput;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutput;
-import java.io.ObjectOutputStream;
-import java.io.Serializable;
-import java.nio.ByteBuffer;
+import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
 
-public class ObjectEncoderDecoder implements MessageEncoderDecoder<Serializable> {
+public class ObjectEncoderDecoder implements MessageEncoderDecoder<String> {
 
-    private final ByteBuffer lengthBuffer = ByteBuffer.allocate(4);
-    private byte[] objectBytes = null;
-    private int objectBytesIndex = 0;
+    private byte[] bytes = new byte[1 << 10]; //start with 1k
+    private int len = 0;
 
     @Override
-    public Serializable decodeNextByte(byte nextByte) {
-        if (objectBytes == null) { //indicates that we are still reading the length
-            lengthBuffer.put(nextByte);
-            if (!lengthBuffer.hasRemaining()) { //we read 4 bytes and therefore can take the length
-                lengthBuffer.flip();
-                objectBytes = new byte[lengthBuffer.getInt()];
-                objectBytesIndex = 0;
-                lengthBuffer.clear();
-            }
-        } else {
-            objectBytes[objectBytesIndex] = nextByte;
-            if (++objectBytesIndex == objectBytes.length) {
-                Serializable result = deserializeObject();
-                objectBytes = null;
-                return result;
-            }
+    public String decodeNextByte(byte nextByte) {
+        //notice that the top 128 ascii characters have the same representation as their utf-8 counterparts
+        //this allow us to do the following comparison
+        if (nextByte == '\n') {
+            return popString();
         }
 
-        return null;
+        pushByte(nextByte);
+        return null; //not a line yet
     }
 
     @Override
-    public byte[] encode(Serializable message) {
-        return serializeObject(message);
+    public byte[] encode(String message) {
+        return (message + "\n").getBytes(); //uses utf8 by default
     }
 
-    private Serializable deserializeObject() {
-        try {
-            ObjectInput in = new ObjectInputStream(new ByteArrayInputStream(objectBytes));
-            return (Serializable) in.readObject();
-        } catch (Exception ex) {
-            throw new IllegalArgumentException("cannot desrialize object", ex);
+    private void pushByte(byte nextByte) {
+        if (len >= bytes.length) {
+            bytes = Arrays.copyOf(bytes, len * 2);
         }
 
+        bytes[len++] = nextByte;
     }
 
-    private byte[] serializeObject(Serializable message) {
-        try {
-            ByteArrayOutputStream bytes = new ByteArrayOutputStream();
-
-            //placeholder for the object size
-            for (int i = 0; i < 4; i++) {
-                bytes.write(0);
-            }
-
-            ObjectOutput out = new ObjectOutputStream(bytes);
-            out.writeObject(message);
-            out.flush();
-            byte[] result = bytes.toByteArray();
-
-            //now write the object size
-            ByteBuffer.wrap(result).putInt(result.length - 4);
-            return result;
-
-        } catch (Exception ex) {
-            throw new IllegalArgumentException("cannot serialize object", ex);
-        }
+    private String popString() {
+        //notice that we explicitly requesting that the string will be decoded from UTF-8
+        //this is not actually required as it is the default encoding in java.
+        String result = new String(bytes, 0, len, StandardCharsets.UTF_8);
+        len = 0;
+        return result;
     }
-
 }

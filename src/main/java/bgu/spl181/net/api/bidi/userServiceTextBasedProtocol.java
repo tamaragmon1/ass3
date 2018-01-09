@@ -71,7 +71,11 @@ public abstract class userServiceTextBasedProtocol<T> implements BidiMessagingPr
                 message=message.substring(ind+1); //cut from first quotation mark
                 ind=message.indexOf("\""); // end of quotation
                 arr.add(message.substring(0,ind));
-                message=message.substring(ind+2); // saves the rest
+                if (space!=-1) {
+                    message = message.substring(ind + 2); // saves the rest
+                }
+                else
+                    message = "";
             }
         }
         return arr;
@@ -84,10 +88,7 @@ public abstract class userServiceTextBasedProtocol<T> implements BidiMessagingPr
     public void loginCommand(String userName, String password){
 
         User myUser= DataForAll.getUser(userName);
-        if (myUser!=null &&
-                myUser.getUsername()==userName &
-                        myUser.getPassword()==password &
-                        (isLogin==false)){
+        if (myUser!=null && (myUser.getUsername()).equals(userName) && (myUser.getPassword()).equals(password) && !isLogin){
             connections.send(connId, "ACK login succeeded");
             isLogin=true;
         }
@@ -104,11 +105,11 @@ public abstract class userServiceTextBasedProtocol<T> implements BidiMessagingPr
             User newUser=new User(userName, password, Datablock);
             DataForAll.addUser(newUser);
             this.name=userName;
-            connections.send(connId, "ACK register succeeded");
+            connections.send(connId, "ACK registration succeeded");
 
         }
         else {
-            connections.send(connId, "ERROR Register failed");
+            connections.send(connId, "ERROR registration failed");
         }
     }
 

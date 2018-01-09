@@ -6,6 +6,7 @@ import com.google.gson.*;
 
 import java.io.*;
 import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
 
 public class MoviesSharedData extends SharedData{
@@ -177,7 +178,7 @@ public class MoviesSharedData extends SharedData{
     }
 
     private class UserList{
-        public List<MovieUser> users;
+        public List<MovieUser> users=new LinkedList<MovieUser>();
 
         public List<MovieUser> getUsers() {
             return users;

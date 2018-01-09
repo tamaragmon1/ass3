@@ -18,7 +18,7 @@ public class MovieRentalService<T> extends userServiceTextBasedProtocol<T> {
     @Override
     protected void requestCommand (ArrayList<String> messageArray){
         if (!isLogin) {
-            connections.send(connId, "ERROR "); //todo complete this
+            connections.send(connId, "ERROR request" + ArrayListToString(messageArray) + " failed");
             return;
         }
         String Command=messageArray.get(1);
@@ -117,15 +117,13 @@ public class MovieRentalService<T> extends userServiceTextBasedProtocol<T> {
                 && country!=null
                 && isLogin==false
                 && ((MoviesSharedData) DataForAll).getUser(userName)==null) {// checks if this user isnt exist
-            int ind=country.indexOf("=");
-            country=country.substring(ind+2,country.length()-2); // saves the country name
             MovieUser newUser=new MovieUser(userName, "normal", password, country);
             ((MoviesSharedData) DataForAll).addUser(newUser);
             this.name=userName;
-            connections.send(connId, "ACK register succeeded");
+            connections.send(connId, "ACK registration succeeded");
         }
         else {
-            connections.send(connId, "ERROR Register failed");
+            connections.send(connId, "ERROR registration failed");
         }
     }
 
@@ -227,5 +225,12 @@ public class MovieRentalService<T> extends userServiceTextBasedProtocol<T> {
         return ((MoviesSharedData) DataForAll).getSpecifiedMovie(movieName).getAvailableAmount();
     }
 
+    private String ArrayListToString(ArrayList<String> messageArray){
+        String ans="";
+        for (int i=1;i<messageArray.size();i++){
+            ans=ans+ " " + messageArray.get(i);
+        }
+        return ans;
+    }
 
 }
